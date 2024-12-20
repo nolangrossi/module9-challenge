@@ -1,76 +1,70 @@
-import fs from 'fs/promises';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const filePath = path.join(__dirname, 'searchHistory.json');
-
+import fs from 'node:fs/promises';
+import { v4 as uuidv4 } from 'uuid';
 
 class City {
-  id: number;
   name: string;
+  id: string;
 
-  constructor(id: number, name: string) {
-    this.id = id;
+  constructor(name: string, id: string) {
     this.name = name;
+    this.id = id;
   }
 }
-
-
+// HistoryService class definition with methods to read, write, get, add, and remove cities from the searchHistory.json file
 class HistoryService {
- 
-  private async read(): Promise<City[]> {
+  
+  // read method that reads the searchHistory.json file and returns the parsed data
+  private async read() {
+    const filePath = './db/searchHistory.json';
     try {
       const data = await fs.readFile(filePath, 'utf-8');
-      const parsedData = JSON.parse(data) as { id: number; name: string }[];
-      return parsedData.map((city) => new City(city.id, city.name));
-    } catch (error: any) {
-      if (error.code === 'ENOENT') {
-        
-        return [];
-      }
-      throw error;
-    }
-  }
-
- 
-  private async write(cities: City[]): Promise<void> {
-    try {
-      await fs.writeFile(filePath, JSON.stringify(cities, null, 2), 'utf-8');
+      return JSON.parse(data);
     } catch (error) {
-      console.error('Error writing to searchHistory.json:', error);
-      throw error;
+      console.error('Error reading or parsing search history:', error);
     }
   }
-
-  public async getCities(): Promise<City[]> {
-    return await this.read();
-  }
-
-  public async getHistory(): Promise<{ id: number; name: string }[]> {
-    const cities = await this.getCities();
-    return cities.map((city) => ({ id: city.id, name: city.name }));
-  }
-
-  public async addCity(cityName: string): Promise<City> {
-    const cities = await this.read();
-    const newId = cities.length > 0 ? Math.max(...cities.map((c) => c.id)) + 1 : 1;
-    const newCity = new City(newId, cityName);
-    cities.push(newCity);
-    await this.write(cities);
-    return newCity;
-  }
-
-  public async removeCity(id: number): Promise<boolean> {
-    const cities = await this.read();
-    const updatedCities = cities.filter((city) => city.id !== id);
-    if (updatedCities.length === cities.length) {
-      throw new Error(`City with ID ${id} not found`);
+  // write method that writes the cities to the searchHistory.json file
+  private async write(cities: City[]) {
+    const filePath = './db/searchHistory.json';
+    try {
+      await fs.writeFile(filePath, JSON.stringify(cities, null, 2));
+    } catch (error) {
+      console.error('Error writing search history:', error);
     }
-    await this.write(updatedCities);
-    return true;
+  }
+  // get method that returns the cities from the searchHistory.json file
+  async getCities() {
+    try {
+      const cities = await this.read();
+      return cities;
+    } catch (error) {
+      console.error('Error getting cities:', error);
+      return [];
+    }
+  }
+  // addCity method that adds a city to the searchHistory.json file
+  async addCity(city: string) {
+    try {
+      const cities = await this.read();
+      const newCity = new City(city, uuidv4());
+      cities.push(newCity);
+      await this.write(cities);
+      return newCity;
+    } catch (error) {
+      console.error('Error adding city:', error);
+      return null;
+    }
+  }
+  // removeCity method that removes a city from the searchHistory.json file
+  async removeCity(id: string) {
+    try {
+      const cities = await this.read();
+      const filteredCities = cities.filter((city: City) => city.id !== id);
+      await this.write(filteredCities);
+    } catch (error) {
+      console.error('Error removing city:', error);
+    }
   }
 }
-
+// Export an instance of the HistoryService class to be used in other files
 export default new HistoryService();

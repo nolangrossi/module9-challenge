@@ -18,6 +18,15 @@ const heading: HTMLHeadingElement = document.getElementById(
 const weatherIcon: HTMLImageElement = document.getElementById(
   'weather-img'
 ) as HTMLImageElement;
+const tempEl: HTMLParagraphElement = document.getElementById(
+  'temp'
+) as HTMLParagraphElement;
+const windEl: HTMLParagraphElement = document.getElementById(
+  'wind'
+) as HTMLParagraphElement;
+const humidityEl: HTMLParagraphElement = document.getElementById(
+  'humidity'
+) as HTMLParagraphElement;
 
 /*
 
@@ -25,28 +34,19 @@ API Calls
 
 */
 
-const fetchWeather = async (city: string) => {
-  try {
-    const response = await fetch('/api/weather/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ city }), // Ensure the payload is correct
-    });
+const fetchWeather = async (cityName: string) => {
+  const response = await fetch('/api/weather/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ cityName }),
+  });
 
-    const weatherData = await response.json();
-    console.log('weatherData:', weatherData); // Add this line to debug
+  const weatherData = await response.json();
 
-    if (!weatherData || !weatherData.data) {
-      throw new Error('Invalid weather data received');
-    }
-
-    renderCurrentWeather(weatherData.data.current);
-    renderForecast(weatherData.data.forecast);
-  } catch (error) {
-    console.error('Error fetching weather data:', error);
-  }
+  renderCurrentWeather(weatherData.currentWeather);
+  renderForecast(weatherData.forecast);
 };
 
 const fetchSearchHistory = async () => {
@@ -75,11 +75,8 @@ Render Functions
 */
 
 const renderCurrentWeather = (currentWeather: any): void => {
-  const { city, date, icon, iconDescription, tempF, windSpeed, humidity } = currentWeather;
-
-  const tempEl = document.createElement('p');
-  const windEl = document.createElement('p');
-  const humidityEl = document.createElement('p');
+  const { city, date, icon, iconDescription, tempF, windSpeed, humidity } =
+    currentWeather;
 
   // convert the following to typescript
   heading.textContent = `${city} (${date})`;
