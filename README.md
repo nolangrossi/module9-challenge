@@ -53,7 +53,7 @@ This will allow you to test and deploy changes locally without impacting the liv
 * Get the weather of cities in your search history
 * Remove cities from your search history
 
-The application is hosted on Render here: <https://weather-dashboard-wpxv.onrender.com/>
+The application is hosted on Render here: <https://weather-dash-ng.onrender.com>
 
 ## Contributing
 
